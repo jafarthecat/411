@@ -1,15 +1,14 @@
 <script>
-	let {children} = $props();
+	let { children } = $props();
 </script>
 
-<nav>
-	<a href="/">Home</a>
-	<a href="/collection">My collection</a>
-	<a href="/artifacts">Artifact</a>
-	<a href="/factions">Faction</a>
-	<a href="/quiz">Quiz</a>
+<nav class="navbar">
+	<a href="/" class="nav-link">Home</a>
+	<a href="/quiz" class="nav-link">Quiz</a>
+	<a href="/clue" class="nav-link">Clue</a>
+	<a href="/scan" class="nav-link">Scan / Code</a>
+	<a href="/collection" class="nav-link">My Collection</a>
 </nav>
 
-<hr>
+	{@render children()}
 
-{@render children()}
