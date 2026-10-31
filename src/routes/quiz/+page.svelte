@@ -34,10 +34,14 @@
     {#if form?.success && step === 'start'}
         <section class="intro result">
             <p class="eyebrow">QUIZ COMPLETED</p>
-            <h1>ตอบครบแล้ว!</h1>
-            <p>คำตอบทั้ง 5 ข้อพร้อมสำหรับเชื่อมกับเงื่อนไข Faction ของเพื่อน</p>
-            <p class="note">ยังไม่ได้คำนวณ Faction หรือรับการ์ดจาก Artifact Collection</p>
-            <button class="gold" onclick={startQuiz}>ทำ Quiz อีกครั้ง</button>
+            <h1>Faction: {form.faction}</h1>
+            <p>ยินดีด้วย! คุณได้รับการ์ด <strong>{form.artifact}</strong></p>
+            
+            {#if form.imageUrl}
+                <img src={form.imageUrl} alt={form.artifact} style="max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 12px; margin: 20px 0;" />
+            {/if}
+            
+            <p class="note">The artifact card has been saved to your collection.</p>
         </section>
     {:else if step === 'start'}
         <section class="intro">
@@ -50,7 +54,9 @@
                 <img src="/images/quiz/serpent.jpg" alt="" />
             </div>
             <button class="gold" onclick={startQuiz}>BEGIN THE QUIZ →</button>
-            <button class="gold draw-fate" type="button" disabled title="รอเชื่อมระบบสุ่ม Faction">DRAW YOUR FATE</button>
+            <form method="POST" action="?/draw" style="width: 100%;">
+    <button class="gold draw-fate" type="submit" style="cursor: pointer; width: 100%;">DRAW YOUR FATE</button>
+</form>
             <p class="note">5 questions · No right or wrong answers</p>
         </section>
     {:else if step === 'quiz'}
@@ -127,7 +133,6 @@
     .note, .offline { font-size: 12px; color: #999; }
     .offline { text-align: center; margin-top: 35px; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; color: #ccad4c; font-size: 13px; }
-    .back { background: transparent; border: 0; color: #bbb; padding: 10px 0; }
     .back:hover { color: #e4c968; }
     progress { display: block; width: 100%; height: 5px; margin: 12px 0 26px; accent-color: #ccad4c; border: 0; border-radius: 4px; background: #333; }
     progress::-webkit-progress-bar { background: #333; border-radius: 4px; }

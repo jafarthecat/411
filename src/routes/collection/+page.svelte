@@ -1,16 +1,18 @@
 <script>
     let { data } = $props();
     let collections = $derived(data.collections || []);
+    // @ts-ignore
+    let collectedCount = $derived(collections.filter((item) => !item.is_locked).length);
 </script>
 
 <div class="collection-container">
     <h2>My Collection</h2>
-    <p>สมบัติทั้งหมดที่คุณรวบรวมได้ ({collections.length} ชิ้น)</p>
+    <p>All relics gathered in your journey ({collectedCount}/{collections.length} items)</p>
     
     {#if collections.length === 0}
         <div class="empty-state">
-            <p>คุณยังไม่มี Artifact ในคอลเลกชันเลย</p>
-            <a href="/quiz" class="btn">ไปทำ Quiz เพื่อรับชิ้นแรก!</a>
+            <p>You don't have any artifacts in your collection yet.</p>
+            <a href="/quiz" class="btn">Take Quiz to Claim Your First Relic!</a>
         </div>
     {:else}
         <div class="grid">
@@ -28,11 +30,11 @@
                         <h3 class="title">{item.is_locked ? '???' : item.name}</h3>
                         
                         {#if item.is_locked}
-                            <p class="room">สถานที่: {item.gallery_name} (ห้อง {item.room_no})</p>
-                            <div class="status-badge locked-badge">ยังไม่ปลดล็อก</div>
+                            <p class="room">Location: {item.gallery_name} (Room {item.room_no})</p>
+                            <div class="status-badge locked-badge">LOCKED</div>
                         {:else}
-                            <p class="faction">โซน: {item.gallery_name}</p>
-                            <div class="status-badge unlocked-badge">ปลดล็อกแล้ว</div>
+                            <p class="faction">Zone: {item.gallery_name}</p>
+                            <div class="status-badge unlocked-badge">UNLOCKED</div>
                         {/if}
                     </div>
                 </div>
