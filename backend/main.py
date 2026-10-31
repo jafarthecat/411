@@ -14,14 +14,9 @@ from models import (
     UserDB, CollectionItemResponse
 )
 
-# ==========================================
-# ฟังก์ชันสร้างข้อมูลตัวอย่าง (Seed Data)
-# ==========================================
 def seed_db():
     with Session(engine) as session:
-        # เช็คว่ามี Faction ในระบบหรือยัง ถ้ายังไม่มีให้สร้างใหม่
         if not session.exec(select(FactionDB)).first():
-            # 1. สร้าง Factions ครอบคลุมทุกโซน
             egypt = FactionDB(name="Egypt", total_rooms=4, description="อารยธรรมลุ่มแม่น้ำไนล์")
             greece = FactionDB(name="Greece", total_rooms=4, description="ดินแดนแห่งเทพเจ้าและนักปราชญ์")
             rome = FactionDB(name="Rome", total_rooms=4, description="จักรวรรดิโรมันอันยิ่งใหญ่")
@@ -34,7 +29,6 @@ def seed_db():
             session.add_all([egypt, greece, rome, asia, europe, middle_east, americas, africa])
             session.commit()
             
-            # 2. สร้าง Artifacts ทั้ง 16 ชิ้น
             artifacts = [
                 ArtifactDB(
                     name="Colossal granite image of King Ramesses ll", 
@@ -201,7 +195,6 @@ def seed_db():
             session.commit()
             print("ดึงข้อมูล Artifacts ทั้งหมด 16 รายการลงฐานข้อมูลเรียบร้อยแล้ว")
 
-# เริ่มต้นสร้างฐานข้อมูลและใส่ข้อมูลจำลอง
 init_db()
 seed_db()
 

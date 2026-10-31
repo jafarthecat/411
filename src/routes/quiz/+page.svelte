@@ -34,14 +34,16 @@
     {#if form?.success && step === 'start'}
         <section class="intro result">
             <p class="eyebrow">QUIZ COMPLETED</p>
-            <h1>Faction: {form.faction}</h1>
-            <p>ยินดีด้วย! คุณได้รับการ์ด <strong>{form.artifact}</strong></p>
+            <p class="eyebrow">YOUR FACTION</p>
+            <h1>{form.faction}</h1>
+            <p class="dialogue">{factionDialogue[form.faction] || '“การเลือกของคุณได้กำหนดเส้นทางแล้ว นักสำรวจ—เบาะแสแรกกำลังรอคุณอยู่”'}</p>
+            <p>การเดินทางเริ่มต้นแล้ว คุณได้รับวัตถุโบราณชิ้นแรก: <strong>{form.artifact}</strong></p>
             
             {#if form.imageUrl}
                 <img src={form.imageUrl} alt={form.artifact} style="max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 12px; margin: 20px 0;" />
             {/if}
             
-            <p class="note">The artifact card has been saved to your collection.</p>
+            <p class="note">บันทึกวัตถุโบราณลงในคอลเลกชันแล้ว ไปดูคำใบ้ชิ้นต่อไปได้เลย</p>
         </section>
     {:else if step === 'start'}
         <section class="intro">
@@ -105,7 +107,7 @@
                         <button type="button" class="back" onclick={() => { currentIndex = index; step = 'quiz'; }}>แก้ไข</button>
                     </div>
                 {/each}
-                <p class="note">ส่วนคำนวณ Faction และแสดงการ์ดจะเชื่อมภายหลัง</p>
+                <p class="note">“ทุกคำตอบคือร่องรอย ตรวจให้แน่ใจว่าคุณพร้อม แล้วเราจะเปิดเส้นทางให้”</p>
                 <button class="gold" type="submit">ยืนยันคำตอบ →</button>
             </form>
         </section>

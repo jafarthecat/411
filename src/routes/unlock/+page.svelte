@@ -3,8 +3,9 @@
 </script>
 
 <div class="scan-container">
-    <h2>Scan or Enter Code</h2>
-    <p>Enter the code found on the artifact display label to unlock.</p>
+    <p class="eyebrow">ห้องเก็บหลักฐาน</p>
+    <h2>เปิดผนึกวัตถุโบราณ</h2>
+    <p>“ถ้าคุณพบชิ้นงานที่ตามหาแล้ว กรอกรหัสบนป้ายจัดแสดงเพื่อยืนยันการค้นพบ ฉันจะบันทึกมันไว้ในคอลเลกชันของคุณ”</p>
 
     {#if form?.message}
         <div class="alert {form.success ? 'success' : 'error'}">
@@ -16,10 +17,10 @@
         <input 
             type="text" 
             name="artifact_code" 
-            placeholder="Enter Artifact Code" 
+            placeholder="กรอกรหัสวัตถุโบราณ" 
             required 
         />
-        <button type="submit">Unlock</button>
+        <button type="submit">ยืนยันรหัส</button>
     </form>
 </div>
 
