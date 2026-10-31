@@ -1,302 +1,169 @@
 <script>
-    import { goto } from '$app/navigation';
-
-    // สถานะหน้า: 'start' (หน้าแรก), 'quiz' (กำลังทำ), 'result' (ผลลัพธ์)
-    let step = $state('start'); 
+    let { data, form } = $props();
+    let step = $state('start');
     let currentIndex = $state(0);
-    // @ts-ignore
+    /** @type {string[]} */
     let answers = $state([]);
-    let loading = $state(false);
-    let errorMessage = $state('');
-
-    const questions = [
-        {
-            id: 1,
-            title: "เมื่อพบประตูโบราณที่ปิดล๊อคอยู่...",
-            leftText: "วิเคราะห์อักขระและถอดรหัสกลไก",
-            leftFaction: "Egypt",
-            rightText: "ใช้กำลังและอาวุธพังประตูเข้าไป",
-            rightFaction: "Rome"
-        },
-        {
-            id: 2,
-            title: "สิ่งของคู่กายที่คุณไว้วางใจมากที่สุด...",
-            leftText: "ตำราพิชัยสงครามและแผนที่",
-            leftFaction: "Greece",
-            rightText: "เครื่องรางโบราณและเวทมนตร์",
-            rightFaction: "Egypt"
-        },
-        {
-            id: 3,
-            title: "เป้าหมายสูงสุดของการสำรวจครั้งนี้...",
-            leftText: "บันทึกประวัติศาสตร์และปรัชญา",
-            leftFaction: "Greece",
-            rightText: "ครอบครองสมบัติและแผ่ขยายอำนาจ",
-            rightFaction: "Rome"
-        },
-        {
-            id: 4,
-            title: "บรรยากาศสถานที่ที่คุณชอบมากที่สุด...",
-            leftText: "วิหารหินอ่อนบนยอดเขาอันสงบ",
-            leftFaction: "Greece",
-            rightText: "พีระมิดและโบราณสถานกลางทะเลทราย",
-            rightFaction: "Egypt"
-        }
-    ];
 
     function startQuiz() {
-        step = 'quiz';
-        currentIndex = 0;
         answers = [];
+        currentIndex = 0;
+        step = 'quiz';
     }
 
-    // @ts-ignore
-    function selectOption(faction) {
-        answers.push(faction);
-        if (currentIndex < questions.length - 1) {
-            currentIndex++;
-        } else {
-            submitAnswers(answers);
-        }
+    /** @param {string} choice */
+    function choose(choice) {
+        answers[currentIndex] = choice;
+        if (currentIndex < data.questions.length - 1) currentIndex++;
+        else step = 'review';
     }
 
-    function randomQuiz() {
-        const factions = ['Egypt', 'Greece', 'Rome'];
-        const randomAnswers = [
-            factions[Math.floor(Math.random() * factions.length)],
-            factions[Math.floor(Math.random() * factions.length)],
-            factions[Math.floor(Math.random() * factions.length)],
-            factions[Math.floor(Math.random() * factions.length)]
-        ];
-        submitAnswers(randomAnswers);
-    }
-
-    // @ts-ignore
-    async function submitAnswers(finalAnswers) {
-        loading = true;
-        errorMessage = '';
-        step = 'result';
-
-        try {
-            const res = await fetch('http://127.0.0.1:8000/personas/quiz', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: 1,
-                    scenario_1_choice: finalAnswers[0],
-                    scenario_2_choice: finalAnswers[1],
-                    scenario_3_choice: finalAnswers[2],
-                    scenario_4_choice: finalAnswers[3]
-                })
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                // ถ้า Backend แจ้งว่าทำควิซไปแล้ว
-                if (data.detail && data.detail.includes("ทำแบบทดสอบ")) {
-                    throw new Error("คุณเคยทำ Quiz เพื่อรับ Faction และ Artifact ชิ้นแรกไปเรียบร้อยแล้ว!");
-                }
-                throw new Error(data.detail || 'เกิดข้อผิดพลาดในการทำ Quiz');
-            }
-
-            // ทำสำเร็จ ย้ายไปหน้า Collection
-            goto('/collection');
-        } catch (err) {
-            // @ts-ignore
-            errorMessage = err.message;
-        } finally {
-            loading = false;
-        }
+    function back() {
+        if (currentIndex > 0) currentIndex--;
+        else step = 'start';
     }
 </script>
 
-<div class="quiz-wrapper">
-    {#if step === 'start'}
-        <!-- หน้าเริ่มต้นทำ Quiz -->
-        <div class="start-card">
-            <div class="icon">🏛️</div>
-            <h2>ค้นหา Faction ประจำตัวคุณ</h2>
-            <p>ตอบคำถามปริศนา 4 ข้อ เพื่อปลดล็อก Faction และรับ Artifact ชิ้นแรกเข้าสู่คอลเลกชันของคุณ!</p>
-            
-            <div class="start-buttons">
-                <button class="btn-primary" onclick={startQuiz}>
-                    ✨ เริ่มทำ Quiz
-                </button>
-                <button class="btn-random" onclick={randomQuiz}>
-                    🎲 สุ่มการ์ดทันที
-                </button>
-            </div>
-        </div>
+<svelte:head>
+    <title>Museum Persona Quiz | The British Museum</title>
+    <meta name="description" content="Five unusual encounters. Choose NOPE or LIKE to find your museum persona." />
+</svelte:head>
 
+<main>
+    <div class="brand">THE BRITISH MUSEUM <span>PERSONA QUIZ</span></div>
+    {#if form?.success && step === 'start'}
+        <section class="intro result">
+            <p class="eyebrow">QUIZ COMPLETED</p>
+            <h1>ตอบครบแล้ว!</h1>
+            <p>คำตอบทั้ง 5 ข้อพร้อมสำหรับเชื่อมกับเงื่อนไข Faction ของเพื่อน</p>
+            <p class="note">ยังไม่ได้คำนวณ Faction หรือรับการ์ดจาก Artifact Collection</p>
+            <button class="gold" onclick={startQuiz}>ทำ Quiz อีกครั้ง</button>
+        </section>
+    {:else if step === 'start'}
+        <section class="intro">
+            <p class="eyebrow">FIND YOUR MUSEUM PERSONA</p>
+            <h1>Ancient artifacts.<br />Modern problems.</h1>
+            <p>Five unexpected encounters.<br />Would you say nope, or fall in love?</p>
+            <div class="preview" aria-hidden="true">
+                <img src="/images/quiz/hor.jpg" alt="" />
+                <img src="/images/quiz/parthenon.jpg" alt="" />
+                <img src="/images/quiz/serpent.jpg" alt="" />
+            </div>
+            <button class="gold" onclick={startQuiz}>BEGIN THE QUIZ →</button>
+            <button class="gold draw-fate" type="button" disabled title="รอเชื่อมระบบสุ่ม Faction">DRAW YOUR FATE</button>
+            <p class="note">5 questions · No right or wrong answers</p>
+        </section>
     {:else if step === 'quiz'}
-        <!-- หน้าทำการ์ดปัด ซ้าย-ขวา -->
-        <div class="quiz-card-container">
-            <div class="progress">ข้อ {currentIndex + 1} / {questions.length}</div>
-            
-            <div class="swipe-card">
-                <h3>{questions[currentIndex].title}</h3>
-                <div class="swipe-actions">
-                    <button class="btn-swipe left" onclick={() => selectOption(questions[currentIndex].leftFaction)}>
-                        <span class="arrow">⬅️</span>
-                        <span>{questions[currentIndex].leftText}</span>
-                    </button>
-                    
-                    <div class="divider">VS</div>
-
-                    <button class="btn-swipe right" onclick={() => selectOption(questions[currentIndex].rightFaction)}>
-                        <span>{questions[currentIndex].rightText}</span>
-                        <span class="arrow">➡️</span>
-                    </button>
-                </div>
-            </div>
+        <div class="toolbar">
+            <button class="back" onclick={back}>← BACK</button>
+            <span aria-live="polite">{currentIndex + 1} / {data.questions.length}</span>
         </div>
-
-    {:else if step === 'result'}
-        <!-- หน้ากำลังประมวลผล / แสดง Error -->
-        <div class="result-card">
-            {#if loading}
-                <div class="spinner">🔮</div>
-                <h3>กำลังวิเคราะห์ผลการค้นหา...</h3>
-                <p>ระบบกำลังจัดสรร Faction และ Artifact ชิ้นแรกให้คุณ</p>
-            {:else if errorMessage}
-                <div class="info-box">
-                    <div class="icon-small">🛡️</div>
-                    <h3>รับการ์ดเรียบร้อยแล้ว</h3>
-                    <p>{errorMessage}</p>
-                    
-                    <div class="action-buttons">
-                        <a href="/clue" class="btn-gold">🔍 ไปดูคำใบ้ชิ้นถัดไป (Clue)</a>
-                        <a href="/collection" class="btn-secondary">🖼️ ดูคอลเลกชันของคุณ</a>
+        <progress value={currentIndex + 1} max={data.questions.length} aria-label="Question progress"></progress>
+        {#each data.questions as question, index}
+            {#if index === currentIndex}
+                <article>
+                    <h1>{index + 1}. {question.title}</h1>
+                    <figure>
+                        <img class="artifact" src={question.image} alt={question.artifact} />
+                        <figcaption>{question.credit}</figcaption>
+                    </figure>
+                    <h2><strong>Artifact:</strong> {question.artifact}</h2>
+                    <p class="question">{question.question}</p>
+                    <div class="choices">
+                        <button class="choice nope" class:selected={answers[index] === 'nope'} aria-pressed={answers[index] === 'nope'} onclick={() => choose('nope')}>
+                            <span class="symbol" aria-hidden="true">×</span>
+                            <span>NOPE</span>
+                            <small>{question.nope}</small>
+                        </button>
+                        <button class="choice like" class:selected={answers[index] === 'like'} aria-pressed={answers[index] === 'like'} onclick={() => choose('like')}>
+                            <span class="symbol" aria-hidden="true">♡</span>
+                            <span>LIKE</span>
+                            <small>{question.like}</small>
+                        </button>
                     </div>
-                </div>
+                    <a class="source" href={question.source} target="_blank" rel="noreferrer">Image source ↗</a>
+                </article>
             {/if}
-        </div>
+        {/each}
+    {:else if step === 'review'}
+        <section class="review">
+            <p class="eyebrow">ALL FIVE ENCOUNTERS COMPLETE</p>
+            <h1>Your choices</h1>
+            <p>ตรวจคำตอบก่อนส่ง ย้อนกลับไปแก้ไขได้ทุกข้อ</p>
+            <form method="POST" action="?/submit">
+                {#each data.questions as question, index}
+                    <input type="hidden" name="question_{question.id}" value={answers[index]} />
+                    <div class="review-row">
+                        <img src={question.image} alt="" />
+                        <div><h2>{question.title}</h2><span class:liked={answers[index] === 'like'}>{answers[index] === 'like' ? '♡ LIKE' : '× NOPE'}</span></div>
+                        <button type="button" class="back" onclick={() => { currentIndex = index; step = 'quiz'; }}>แก้ไข</button>
+                    </div>
+                {/each}
+                <p class="note">ส่วนคำนวณ Faction และแสดงการ์ดจะเชื่อมภายหลัง</p>
+                <button class="gold" type="submit">ยืนยันคำตอบ →</button>
+            </form>
+        </section>
     {/if}
-</div>
+    {#if form?.error}<p class="error" role="alert">{form.error}</p>{/if}
+    {#if data.offline}<p class="offline">กำลังใช้ชุดคำถามในโปรเจค — ยังไม่เชื่อม FastAPI</p>{/if}
+</main>
 
 <style>
-    .quiz-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 70vh;
-        text-align: center;
-    }
-
-    .start-card, .swipe-card, .result-card {
-        background: #1a1a2e;
-        border: 2px solid #cda434;
-        border-radius: 16px;
-        padding: 40px 30px;
-        max-width: 450px;
-        width: 100%;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
-
-    .icon { font-size: 4rem; margin-bottom: 15px; }
-    .icon-small { font-size: 3rem; margin-bottom: 10px; }
-    h2 { color: #cda434; margin-bottom: 10px; }
-    p { color: #ccc; line-height: 1.5; font-size: 0.95rem; }
-
-    .start-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-top: 30px;
-    }
-
-    .btn-primary {
-        background: #cda434;
-        color: #000;
-        border: none;
-        padding: 14px;
-        font-size: 1.05rem;
-        font-weight: bold;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    .btn-primary:hover { transform: scale(1.02); }
-
-    .btn-random {
-        background: #2a2a40;
-        color: #fff;
-        border: 1px solid #cda434;
-        padding: 12px;
-        font-size: 1rem;
-        font-weight: bold;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-    .btn-random:hover { background: #353554; }
-
-    .progress {
-        color: #cda434;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-    .swipe-card h3 {
-        color: #fff;
-        font-size: 1.2rem;
-        margin-bottom: 30px;
-        min-height: 50px;
-    }
-    .swipe-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        align-items: center;
-    }
-
-    .btn-swipe {
-        background: #0f0f1a;
-        border: 1px solid #444;
-        color: #ddd;
-        padding: 15px;
-        border-radius: 10px;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.95rem;
-    }
-    .btn-swipe:hover {
-        border-color: #cda434;
-        color: #cda434;
-        background: #252538;
-    }
-
-    .divider { color: #666; font-weight: bold; font-size: 0.8rem; }
-
-    .spinner { font-size: 3.5rem; animation: spin 2s infinite linear; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    .info-box h3 { color: #cda434; font-size: 1.3rem; margin-bottom: 10px; }
-    .action-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .btn-gold {
-        background: #cda434;
-        color: #000;
-        padding: 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-    }
-    .btn-secondary {
-        background: #222;
-        color: #aaa;
-        padding: 10px;
-        border-radius: 8px;
-        text-decoration: none;
-        border: 1px solid #444;
+    :global(body) { margin: 0; background: #080808; color: #f5f5f5; font-family: Arial, sans-serif; }
+    main { max-width: 1080px; margin: 0 auto; padding: 30px 24px 48px; }
+    .brand { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 26px; border-bottom: 1px solid #2b2b2b; font-size: 12px; font-weight: bold; letter-spacing: 2px; }
+    .brand span, .eyebrow { color: #ccad4c; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #e4c968; outline-offset: 5px; }
+    .intro { max-width: 620px; margin: 65px auto 35px; text-align: center; }
+    .eyebrow { font-size: 11px; letter-spacing: 2px; }
+    .intro h1 { font-family: Georgia, serif; font-size: clamp(36px, 6vw, 64px); line-height: 1.1; margin: 24px 0; }
+    p { color: #b9b9b9; line-height: 1.6; }
+    .preview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 30px 0; }
+    .preview img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; }
+    .gold { background: #ccad4c; color: #14120b; padding: 16px 24px; border: 0; border-radius: 6px; font-weight: bold; width: 100%; }
+    .gold:hover { background: #e4c968; }
+    .draw-fate { margin-top: 12px; cursor: default; }
+    .note, .offline { font-size: 12px; color: #999; }
+    .offline { text-align: center; margin-top: 35px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; color: #ccad4c; font-size: 13px; }
+    .back { background: transparent; border: 0; color: #bbb; padding: 10px 0; }
+    .back:hover { color: #e4c968; }
+    progress { display: block; width: 100%; height: 5px; margin: 12px 0 26px; accent-color: #ccad4c; border: 0; border-radius: 4px; background: #333; }
+    progress::-webkit-progress-bar { background: #333; border-radius: 4px; }
+    progress::-webkit-progress-value { background: #ccad4c; border-radius: 4px; }
+    article h1 { font-size: clamp(22px, 3vw, 30px); margin: 0 0 20px; line-height: 1.3; }
+    figure { margin: 0; position: relative; }
+    .artifact { display: block; width: 100%; height: clamp(230px, 42vw, 500px); object-fit: contain; background: #202020; border-radius: 22px; }
+    figcaption { position: absolute; bottom: 12px; left: 12px; max-width: 80%; padding: 7px 12px; border-radius: 20px; background: #000a; color: #eee; font-size: 11px; }
+    h2 { font-size: 22px; font-weight: normal; line-height: 1.4; margin: 16px 0 10px; }
+    .question { font-size: 19px; margin: 12px 0 18px; min-height: 60px; }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .choice { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #242424; color: #fff; border: 2px solid transparent; border-radius: 18px; padding: 15px; min-height: 125px; font-size: 20px; }
+    .choice small { font-size: 16px; line-height: 1.4; }
+    .symbol { font-size: 30px; line-height: 1; }
+    .nope .symbol { color: #e55252; }
+    .like .symbol, .liked { color: #59bb79; }
+    .nope:hover, .nope.selected { border-color: #e55252; background: #302121; }
+    .like:hover, .like.selected { border-color: #59bb79; background: #203026; }
+    .source { display: block; text-align: right; margin-top: 18px; color: #b6b6b6; font-size: 12px; }
+    .review { max-width: 720px; margin: 45px auto; }
+    .review-row { display: flex; gap: 18px; align-items: center; padding: 18px 0; border-bottom: 1px solid #303030; }
+    .review-row img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
+    .review-row div { flex: 1; }
+    .review-row h2 { font-size: 16px; margin: 0 0 8px; }
+    .review-row span { font-size: 12px; }
+    .error { color: #f08b8b; text-align: center; }
+    @media (max-width: 600px) {
+        main { padding: 24px 16px; }
+        .brand { font-size: 9px; letter-spacing: 1px; }
+        .intro { margin-top: 45px; }
+        .preview img { height: 110px; }
+        .question { font-size: 16px; }
+        h2 { font-size: 18px; }
+        .choice { font-size: 17px; min-height: 120px; padding: 12px 8px; }
+        .choice small { font-size: 13px; }
+        .review-row { gap: 10px; }
+        figcaption { font-size: 9px; }
     }
 </style>
