@@ -31,19 +31,18 @@
 
 <main>
     <div class="brand">THE BRITISH MUSEUM <span>PERSONA QUIZ</span></div>
+    
     {#if form?.success && step === 'start'}
         <section class="intro result">
             <p class="eyebrow">QUIZ COMPLETED</p>
-            <p class="eyebrow">YOUR FACTION</p>
-            <h1>{form.faction}</h1>
-            <p class="dialogue">{factionDialogue[form.faction] || '“การเลือกของคุณได้กำหนดเส้นทางแล้ว นักสำรวจ—เบาะแสแรกกำลังรอคุณอยู่”'}</p>
-            <p>การเดินทางเริ่มต้นแล้ว คุณได้รับวัตถุโบราณชิ้นแรก: <strong>{form.artifact}</strong></p>
+            <h1>Faction: {form.faction}</h1>
+            <p>Congratulations! You have claimed the <strong>{form.artifact}</strong> card.</p>
             
             {#if form.imageUrl}
                 <img src={form.imageUrl} alt={form.artifact} style="max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 12px; margin: 20px 0;" />
             {/if}
             
-            <p class="note">บันทึกวัตถุโบราณลงในคอลเลกชันแล้ว ไปดูคำใบ้ชิ้นต่อไปได้เลย</p>
+            <p class="note">The card has been added to your Collection.</p>
         </section>
     {:else if step === 'start'}
         <section class="intro">
@@ -57,8 +56,15 @@
             </div>
             <button class="gold" onclick={startQuiz}>BEGIN THE QUIZ →</button>
             <form method="POST" action="?/draw" style="width: 100%;">
-    <button class="gold draw-fate" type="submit" style="cursor: pointer; width: 100%;">DRAW YOUR FATE</button>
-</form>
+                <button 
+                    class="gold draw-fate" 
+                    type="submit" 
+                    disabled={form?.error ? true : false}
+                    style="cursor: {form?.error ? 'not-allowed' : 'pointer'}; width: 100%; opacity: {form?.error ? 0.5 : 1};"
+                >
+                    {form?.error ? 'COLLECTION ALREADY CLAIMED' : 'DRAW YOUR FATE'}
+                </button>
+            </form>
             <p class="note">5 questions · No right or wrong answers</p>
         </section>
     {:else if step === 'quiz'}
@@ -97,23 +103,27 @@
         <section class="review">
             <p class="eyebrow">ALL FIVE ENCOUNTERS COMPLETE</p>
             <h1>Your choices</h1>
-            <p>ตรวจคำตอบก่อนส่ง ย้อนกลับไปแก้ไขได้ทุกข้อ</p>
+            <p>Review your answers before submitting. You can go back and edit any question.</p>
             <form method="POST" action="?/submit">
                 {#each data.questions as question, index}
                     <input type="hidden" name="question_{question.id}" value={answers[index]} />
                     <div class="review-row">
                         <img src={question.image} alt="" />
                         <div><h2>{question.title}</h2><span class:liked={answers[index] === 'like'}>{answers[index] === 'like' ? '♡ LIKE' : '× NOPE'}</span></div>
-                        <button type="button" class="back" onclick={() => { currentIndex = index; step = 'quiz'; }}>แก้ไข</button>
+                        <button type="button" class="back" onclick={() => { currentIndex = index; step = 'quiz'; }}>Edit</button>
                     </div>
                 {/each}
-                <p class="note">“ทุกคำตอบคือร่องรอย ตรวจให้แน่ใจว่าคุณพร้อม แล้วเราจะเปิดเส้นทางให้”</p>
-                <button class="gold" type="submit">ยืนยันคำตอบ →</button>
+                <button class="gold" type="submit" style="margin-top: 24px;">Confirm Answers →</button>
             </form>
         </section>
     {/if}
-    {#if form?.error}<p class="error" role="alert">{form.error}</p>{/if}
-    {#if data.offline}<p class="offline">กำลังใช้ชุดคำถามในโปรเจค — ยังไม่เชื่อม FastAPI</p>{/if}
+
+    {#if form?.error}
+        <p class="error" role="alert" style="margin-top: 20px; font-weight: bold;">⚠️ {form.error}</p>
+    {/if}
+    {#if data.offline}
+        <p class="offline">Using local question set — FastAPI not connected</p>
+    {/if}
 </main>
 
 <style>
@@ -131,10 +141,11 @@
     .preview img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; }
     .gold { background: #ccad4c; color: #14120b; padding: 16px 24px; border: 0; border-radius: 6px; font-weight: bold; width: 100%; }
     .gold:hover { background: #e4c968; }
-    .draw-fate { margin-top: 12px; cursor: default; }
+    .draw-fate { margin-top: 12px; }
     .note, .offline { font-size: 12px; color: #999; }
     .offline { text-align: center; margin-top: 35px; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; color: #ccad4c; font-size: 13px; }
+    .back { background: transparent; border: 0; color: #bbb; padding: 10px 0; }
     .back:hover { color: #e4c968; }
     progress { display: block; width: 100%; height: 5px; margin: 12px 0 26px; accent-color: #ccad4c; border: 0; border-radius: 4px; background: #333; }
     progress::-webkit-progress-bar { background: #333; border-radius: 4px; }
